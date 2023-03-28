@@ -1,0 +1,19 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "App API",
+        "version": "0.1"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "operationId": "789aebb8c643aec7a5e6e6b06d2f62ea",
+                "responses": {
+                    "200": {
+                        "description": "The data"
+                    }
+                }
+            }
+        }
+    }
+}
