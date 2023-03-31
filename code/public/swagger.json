@@ -5,12 +5,169 @@
         "version": "0.1"
     },
     "paths": {
+        "/blog": {
+            "get": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "39c2879e2df0589d71832a6e736a64bb",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "631f83b9d4166771e126bac62dda9757",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "text"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "text": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/blog/{id}": {
+            "get": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "d7fef528af9e76804241c0b7a12567c0",
+                "parameters": [
+                    {
+                        "parameter": "id",
+                        "name": "id",
+                        "in": "path",
+                        "description": "blog post id",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "9002dc2e531000244dc68062f1862daf",
+                "parameters": [
+                    {
+                        "parameter": "id",
+                        "name": "id",
+                        "in": "path",
+                        "description": "blog post id",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "title",
+                                    "text"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "text": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "scalar": "auth"
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "c502606b8985f69e7a0bf0cfceec2f20",
+                "parameters": [
+                    {
+                        "parameter": "id",
+                        "name": "id",
+                        "in": "path",
+                        "description": "blog post id",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/": {
             "get": {
                 "operationId": "789aebb8c643aec7a5e6e6b06d2f62ea",
                 "responses": {
                     "200": {
-                        "description": "The data"
+                        "description": "OK"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "auth": {
+                "type": "oauth2",
+                "description": "my auth",
+                "flows": {
+                    "password": {
+                        "tokenUrl": "/login",
+                        "scopes": {}
                     }
                 }
             }

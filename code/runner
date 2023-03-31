@@ -1,0 +1,95 @@
+#!/usr/bin/env php
+<?php
+$loader = require __DIR__ . '/vendor/autoload.php';
+new Runner($argc, $argv, $loader);
+
+class Runner{
+    private \Composer\Autoload\ClassLoader $loader;
+
+    public function __construct($argc, $argv, $loader){
+        $this->loader = $loader;
+        unset($argv[0]);
+        $argc--;
+        if ($argc > 1){
+            $this->caseCommand($argv);
+        } else{
+            $this->help();
+        }
+    }
+
+    private function help(){
+        echo <<<EOT
+        migrate     Migrate\n
+        EOT;
+    }
+
+    private function caseCommand($args){
+        switch ($args[1]) {
+            case 'migrate':
+                $this->migration($args);
+                break;
+            
+            default:
+                Runner::help();
+                break;
+        }
+    }
+
+    private function migration($args){
+        unset($args[1]);
+        switch ($args[2]) {
+            case 'up':
+                $this->migrateUp();
+                break;
+            
+            case 'down':
+                $this->migrateDown();
+                break;
+            
+            default:
+                $this->help();
+                break;
+        }
+    }
+
+    private function migrateUp(){
+        $this->getClassList("Migrations", function($key){
+            /**
+             * @var \Doctrine\DBAL\Schema\Schema $schema
+             */
+            $schema = $key::schema();
+            $queries = $schema->toSql(Db::platform());
+            foreach ($queries as $query) {
+                Db::raw($query);
+            }
+            echo "[+] " . Helpers::classBaseName($key). "\n";
+        });
+    }
+
+    private function migrateDown(){
+        $this->getClassList("Migrations", function($key){
+            /**
+             * @var \Doctrine\DBAL\Schema\Schema $schema
+             */
+            $schema = $key::schema();
+            $queries = $schema->toDropSql(Db::platform());
+            foreach ($queries as $query) {
+                Db::raw($query);
+            }
+            echo "[-] " . Helpers::classBaseName($key). "\n";
+        });
+    }
+
+    private function getClassList(string $namespace, callable $callback){
+        $namespace_len = strlen($namespace);
+        $class_list = [];
+        foreach ($this->loader->getClassMap() as $key => $value) {
+            if (substr($key, 0, $namespace_len) == $namespace){
+                $class_list[$key]=$value;
+            }
+        }
+        foreach ($class_list as $key => $value) {
+            $callback($key);
+        }
+    }
+}

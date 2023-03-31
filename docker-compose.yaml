@@ -1,24 +1,51 @@
 services:
   webserver:
-      image: nginx:alpine
-      working_dir: /application
-      volumes:
-        - ./code:/application
-        - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      ports:
-        - ${NGINX_PORT:-80}:80
-      depends_on:
-        - php-fpm
-      restart: unless-stopped
-
-  php-fpm:
-    image: php:8.2-fpm
+    image: nginx:alpine
     working_dir: /application
     volumes:
       - ./code:/application
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - ${NGINX_PORT:-80}:80
+    depends_on:
+      - php-fpm
     restart: unless-stopped
+
+  php-fpm:
+    build: ./docker/php
+    working_dir: /application
+    volumes:
+      - ./code:/application
+    depends_on:
+      - db
+    restart: unless-stopped
+  
+  db:
+    image: mysql:${MYSQL_VERSION:-8.0.32}
+    ports:
+      - ${MYSQL_PORT:-3306}:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    restart: unless-stopped
+    volumes:
+      - db-data:/var/lib/mysql
 
   composer:
     image: composer:latest
     volumes:
       - ./code:/app
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    environment:
+      SWAGGER_JSON: /openapi.json
+      BASE_URL: /docs
+    volumes:
+      - ./code/public/swagger.json:/openapi.json
+
+volumes:
+  db-data:
+    driver: local  

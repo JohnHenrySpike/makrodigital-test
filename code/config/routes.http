@@ -1,0 +1,39 @@
+
+@baseUrl = http://127.0.0.1:8080
+
+###
+GET {{baseUrl}}/?para1=2&param2=1 HTTP/1.1
+
+###
+GET {{baseUrl}}/blog HTTP/1.1
+
+
+###
+GET {{baseUrl}}/blog/page/1 HTTP/1.1
+
+
+###
+GET {{baseUrl}}/blog/2 HTTP/1.1
+
+###
+POST {{baseUrl}}/blog HTTP/1.1
+Content-Type: : application/json
+
+{
+    "title": "test_title223",
+    "text": "test_text<a href=\"sdasd\">asdasdasd</a>sdsad"
+}
+
+###
+PUT {{baseUrl}}/blog/2 HTTP/1.1
+Content-Type: : application/json
+
+{
+    "title": "3erwer3",
+    "text": "sdfsdf"
+}
+
+
+###
+DELETE {{baseUrl}}/blog/5 HTTP/1.1
+Content-Type: : application/json
