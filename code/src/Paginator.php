@@ -24,6 +24,7 @@ class Paginator implements Arrayable{
                 "total" => $this->total,
                 "perPage" => $this->perPage,
                 "currentPage" => $this->currentPage,
+                "pages" => ceil($this->total/$this->perPage),
                 "options" => $this->options
             ]
         ];

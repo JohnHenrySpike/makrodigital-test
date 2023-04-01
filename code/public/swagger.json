@@ -27,11 +27,11 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "title",
+                                    "author",
                                     "text"
                                 ],
                                 "properties": {
-                                    "title": {
+                                    "author": {
                                         "type": "string"
                                     },
                                     "text": {
@@ -51,6 +51,28 @@
                                 "schema": {}
                             }
                         }
+                    }
+                }
+            }
+        },
+        "/blog/page/{page}": {
+            "get": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "6e5be8fe650578e56e35eb9b9c345a3d",
+                "parameters": [
+                    {
+                        "parameter": "page",
+                        "name": "page",
+                        "in": "path",
+                        "description": "blog page",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     }
                 }
             }
@@ -148,6 +170,76 @@
                 }
             }
         },
+        "/blog/{id}/comments": {
+            "get": {
+                "tags": [
+                    "blog"
+                ],
+                "operationId": "6d38baa83940397beed4de00229ca230",
+                "parameters": [
+                    {
+                        "parameter": "id",
+                        "name": "id",
+                        "in": "path",
+                        "description": "blog post id",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/comment/{post_id}": {
+            "post": {
+                "tags": [
+                    "comment"
+                ],
+                "operationId": "47e58038a86ae7b7436eddeaec184b41",
+                "parameters": [
+                    {
+                        "parameter": "post_id",
+                        "name": "post_id",
+                        "in": "path",
+                        "description": "blog post id",
+                        "required": true
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "author",
+                                    "text"
+                                ],
+                                "properties": {
+                                    "author": {
+                                        "type": "string"
+                                    },
+                                    "text": {
+                                        "type": "text"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/": {
             "get": {
                 "operationId": "789aebb8c643aec7a5e6e6b06d2f62ea",
@@ -163,7 +255,6 @@
         "securitySchemes": {
             "auth": {
                 "type": "oauth2",
-                "description": "my auth",
                 "flows": {
                     "password": {
                         "tokenUrl": "/login",

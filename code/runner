@@ -53,7 +53,7 @@ class Runner{
     }
 
     private function migrateUp(){
-        $this->getClassList("Migrations", function($key){
+        $this->getClassList("Migrations", true, function($key){
             /**
              * @var \Doctrine\DBAL\Schema\Schema $schema
              */
@@ -67,7 +67,7 @@ class Runner{
     }
 
     private function migrateDown(){
-        $this->getClassList("Migrations", function($key){
+        $this->getClassList("Migrations", false, function($key){
             /**
              * @var \Doctrine\DBAL\Schema\Schema $schema
              */
@@ -80,13 +80,22 @@ class Runner{
         });
     }
 
-    private function getClassList(string $namespace, callable $callback){
+    private function getClassList(string $namespace, bool $sort,callable $callback){
         $namespace_len = strlen($namespace);
         $class_list = [];
         foreach ($this->loader->getClassMap() as $key => $value) {
             if (substr($key, 0, $namespace_len) == $namespace){
                 $class_list[$key]=$value;
             }
+        }
+        if ($sort){
+            uksort($class_list, function($a, $b){
+                return (
+                    (int) substr($a, strrpos($a, "_")+1)
+                    >
+                    (int) substr($b, strrpos($b, "_")+1)
+                )? 1:-1;
+            });
         }
         foreach ($class_list as $key => $value) {
             $callback($key);

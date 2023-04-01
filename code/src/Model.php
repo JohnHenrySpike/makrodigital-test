@@ -1,5 +1,8 @@
 <?
 use Contracts\Arrayable;
+/**
+ * Summary of Model
+ */
 abstract class Model implements Arrayable
 {
 
@@ -8,6 +11,8 @@ abstract class Model implements Arrayable
     protected string $table;
 
     protected array $attributes = [];
+
+    protected $relations = [];
 
     private const CREATED_AT = 'created_at';
     private const UPDATED_AT = 'updated_at';
@@ -46,6 +51,7 @@ abstract class Model implements Arrayable
         return (new static )->newQuery();
     }
 
+    
     public function insert()
     {
         return $this->newQuery()->insert($this->attributes);
@@ -62,7 +68,7 @@ abstract class Model implements Arrayable
         return $this->newQuery()->delete($this->attributes["id"]);
     }
 
-    private function newQuery()
+    public function newQuery()
     {
         $qb = new QueryBuilder();
         $qb->setModel($this);
@@ -70,8 +76,8 @@ abstract class Model implements Arrayable
     }
 
     public function newInstance($attributes){
-        $model = new static();
-
+        $model = new static;
+        $model->fill($this->attributes);
         $model->setTable($this->getTable());
 
         $model->fill($attributes);
@@ -84,7 +90,19 @@ abstract class Model implements Arrayable
     }
 
     public function asArray(){
-        return $this->attributes;
+        return array_merge($this->attributes, $this->relationsToArray());
+    }
+
+    public function addRelation($name, $value){
+        $this->relations[$name] = $value;
+    }
+
+    public function relationsToArray(){
+        $ar_relations = [];
+        foreach ($this->relations as $key=>$rel) {
+            if ($rel instanceof Arrayable) $ar_relations[$key] = $rel->asArray();
+        }
+        return $ar_relations;
     }
 
     private function setUpdateTime(){
@@ -109,7 +127,7 @@ abstract class Model implements Arrayable
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getKey()
     {
@@ -142,12 +160,5 @@ abstract class Model implements Arrayable
 
     public function setAttribute($key, $value){
 		$this->attributes[$key] = $value;
-	}
-
-	/**
-	 * @return array
-	 */
-	public function getAttributes(): array {
-		return $this->attributes;
 	}
 }

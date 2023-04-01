@@ -9,19 +9,19 @@ GET {{baseUrl}}/blog HTTP/1.1
 
 
 ###
-GET {{baseUrl}}/blog/page/1 HTTP/1.1
+GET {{baseUrl}}/blog/page/5 HTTP/1.1
 
 
 ###
-GET {{baseUrl}}/blog/2 HTTP/1.1
+GET {{baseUrl}}/blog/1 HTTP/1.1
 
 ###
 POST {{baseUrl}}/blog HTTP/1.1
 Content-Type: : application/json
 
 {
-    "title": "test_title223",
-    "text": "test_text<a href=\"sdasd\">asdasdasd</a>sdsad"
+    "author": "author_{{$timestamp}}",
+    "text": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi congue varius urna eu lacinia. Aenean eleifend porttitor mi at dictum. Pellentesque ut eleifend dolor. Cras condimentum quam vitae felis placerat pulvinar. Vivamus mattis ultrices diam. Aliquam suscipit, elit ac facilisis efficitur, nisl mi convallis libero, quis sagittis sapien nibh finibus ante. Quisque hendrerit vestibulum ante, non pulvinar libero cursus ac. Praesent lacinia lobortis nunc, eget ultricies turpis bibendum sit amet. Sed tempor, arcu consectetur sagittis varius, neque felis efficitur ligula, sed tempor ante magna id tortor. Donec sit amet dui leo. Duis commodo leo at tortor scelerisque, et laoreet arcu blandit. Vivamus ac odio lorem. Nullam bibendum elit eu quam rhoncus efficitur. Sed felis leo, feugiat vel sem eget, condimentum pretium ex. Phasellus ut arcu et lacus elementum sagittis. Vestibulum fermentum luctus risus ut eleifend. "
 }
 
 ###
@@ -29,11 +29,24 @@ PUT {{baseUrl}}/blog/2 HTTP/1.1
 Content-Type: : application/json
 
 {
-    "title": "3erwer3",
+    "author": "3erwer3",
     "text": "sdfsdf"
 }
-
 
 ###
 DELETE {{baseUrl}}/blog/5 HTTP/1.1
 Content-Type: : application/json
+
+
+
+###
+GET {{baseUrl}}/blog/1/comments HTTP/1.1
+
+###
+POST {{baseUrl}}/comment/5 HTTP/1.1
+Content-Type: : application/json
+
+{
+    "author": "author_{{$timestamp}}",
+    "text": "Lorem ipsum dolor sit amet."
+}

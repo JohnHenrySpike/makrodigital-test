@@ -26,4 +26,8 @@ class Helpers {
 
         return array_combine($keys, $items);
     }
+
+    public static function log(string $log){
+        file_put_contents('/var/www/html/log_'.date("d_m_Y").'.log', $log."\n", FILE_APPEND);
+    }
 }

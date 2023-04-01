@@ -1,4 +1,8 @@
 <?
+use Doctrine\DBAL\ParameterType;
+/**
+ * Summary of QueryBuilder
+ */
 class QueryBuilder {
 
     /**
@@ -8,17 +12,23 @@ class QueryBuilder {
 
     private $query;
 
+    private $connection;
+
     private $paginator = 'paginator';
 
+    private array|null $relations = null;
 
     public function __construct(){
-        $this->query = $this->newBuilder();
+        $this->connection = Db::getConnection();
+        $this->query = $this->connection->createQueryBuilder();
     }
 
-    private function newBuilder(){
-        return Db::newQuery();
-    }
-
+    /**
+     * Find model by id
+     * @param mixed $id
+     * @param string $columns
+     * @return Collection
+     */
     public function find($id, string $columns = '*'){
         $this->query        
         ->where($this->model->getKey(). '= :id')
@@ -26,17 +36,80 @@ class QueryBuilder {
         return $this->get($columns);
     }
 
-    public function get(string $columns = '*'){
-        $this->query->select($columns)->from($this->model->getTable());
-        $res = $this->query->executeQuery();
-        if ($res->rowCount()>0){
-            return $this->getModel()->newCollection($this->collect($res->fetchAllAssociative()));
-        }else{
-            return $this->getModel()->newCollection();
-        }
+    /**
+     * @param array $condition [ "author", "=", "some_name" ]
+     * @param string $columns
+     * @return self
+     */
+    public function where(array $condition, string $columns = '*'){
+        $this->query        
+        ->where( $condition[0]." ". $condition[1]. ' ?')
+        ->setParameter(0, $condition[2]);
+        return $this;
     }
 
-    private function collect(array $items){
+    public function limit(int|null $limit = null){
+        if ($limit) {
+            $this->query->setMaxResults($limit);
+        }
+        return $this;
+    }
+
+    /**
+     * Query executor
+     * @param string $columns
+     * @return Collection
+     */
+    public function get(string $columns = '*'){
+
+        $models = $this->getModels($columns);
+        
+        if (!empty($this->relations)) {
+            $models = $this->loadRelations($models);
+        }
+        return $models;
+    }
+
+
+    /**
+     * Summary of loadRelations
+     * @param Collection $models
+     * @return Collection
+     */
+    private function loadRelations($models){
+        $nModels = [];
+        /**
+         * @var \Model $model
+         * @var \Model $rmodel
+         */
+        foreach ($models->all() as $model) {
+            foreach ($this->relations as $relation=>$count) {
+                /**
+                 * @var \Model $instance 
+                 */
+                $instance = new $relation;
+                $related_models = $instance->newQuery()->collect(
+                    $instance->newQuery()->where($model->newQuery()->getWithCondition($instance))->limit($count)->query(),
+                    $instance
+                );
+                $model->addRelation(strtolower(Helpers::classBaseName($relation))."s", $instance->newCollection($related_models));
+            }    
+            $nModels[]=$model;
+        }
+        return $this->getModel()->newCollection($nModels);
+    }
+
+    public function getModels(string $columns = '*'){
+        return $this->getModel()->newCollection($this->collect($this->query($columns), $this->getModel()));
+    }
+
+    private function query(string $columns = '*'){
+        $this->query->select($columns)->from($this->model->getTable());
+        Helpers::log($this->query->getSQL());
+        return $this->query->executeQuery()->fetchAllAssociative();
+    }
+
+    private function collect(array $items, $model){
         $models = [];
         foreach ($items as $item) {
             $models[] = $this->getModel()->newInstance($item);
@@ -44,26 +117,24 @@ class QueryBuilder {
         return $models;
     }
 
-    public function paginate(int $currentPage, string $columns = '*', )
+    public function paginate(int $currentPage, string $columns = '*')
     {
         if (!method_exists($this->getModel(), $this->paginator)){
-            throw new Exception("Model paginate method[".$this->paginator."] not avalible");
+            throw new Exception("Model paginate method[".$this->paginator."] not found");
         }
 
         $total = $this->query->select('COUNT(*) count')->from($this->model->getTable())->fetchOne();
 
-        $perPage = $this->getModel()->getPerPage();
-
+        $perPage = $this->model->getPerPage();
+        
         $this->query->setMaxResults($perPage);
 
         $offset = ($currentPage - 1) * $perPage;
 
         $this->query->setFirstResult($offset);
 
-        $items = $this->query->select($columns)->from($this->model->getTable())->fetchAllAssociative();
-
-        $items = $this->getModel()->newCollection($this->collect($items));
-
+        $items = $this->get();
+        
         $options = [];
 
         return $this->getModel()
@@ -72,9 +143,10 @@ class QueryBuilder {
 
     public function insert($values){
         $this->query
-        ->insert($this->model->getTable());
+            ->insert($this->model->getTable());
         $this->setInsertingValues($values);
-        return $this->query->executeStatement();
+        $this->query->executeStatement();
+        return $this->connection->lastInsertId();
     }
 
     public function update($id, $values){
@@ -94,6 +166,31 @@ class QueryBuilder {
         ->where($this->model->getKey(). '= :id')
         ->setParameter('id', $id);
         return $this->query->executeStatement();
+    }
+
+
+    /**
+     * appending data from related model using suffix "_id" for foreign key;
+     * 
+     * @param class-string<\Model> $relation
+     * @return self
+     */
+    public function with($relation, int|null $limit = null){
+        $this->relations[$relation] = $limit;
+        return $this;
+    }
+
+    /**
+     * Summary of prepareWithCondition
+     * @param \Model $relation
+     * @return array
+     */
+    private function getWithCondition($relation){
+        return [
+            strtolower(Helpers::classBaseName($this->getModel())) . "_id", 
+            "=", 
+            $this->getModel()->getAttribute('id')
+        ];
     }
 
     private function setInsertingValues($values){

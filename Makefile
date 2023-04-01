@@ -22,7 +22,7 @@ migrate-down: ## Execute runner migration
 docs: ## Update docs
 	$(DOCKER_EXEC) php-fpm ./vendor/bin/openapi app -o public/swagger.json
 
-php-test: ## Run PHPUnit tests
+unit-test: ## Run PHPUnit tests
 	$(DOCKER_EXEC) php-fpm ./vendor/bin/phpunit --testdox tests
 
 composer-command: ## Composer command
