@@ -19,14 +19,17 @@ migrate-up: ## Execute runner migration
 migrate-down: ## Execute runner migration
 	$(DOCKER_EXEC) php-fpm ./runner migrate down
 
-docs: ## Update docs
-	$(DOCKER_EXEC) php-fpm ./vendor/bin/openapi app -o public/swagger.json
+docs: ## Update openapi docs
+	$(DOCKER_EXEC) php-fpm ./vendor/bin/openapi app src -o public/swagger.json
 
 unit-test: ## Run PHPUnit tests
 	$(DOCKER_EXEC) php-fpm ./vendor/bin/phpunit --testdox tests
 
-composer-command: ## Composer command
+composer-command: ## Composer command c="some command"
 	$(DOCKER_RUN) composer $(c)
+
+composer-install: ## Composer install command
+	$(DOCKER_RUN) composer composer install -o
 
 composer-dumpautoload: ## Composer dump autoload
 	$(DOCKER_RUN) composer dumpautoload -o

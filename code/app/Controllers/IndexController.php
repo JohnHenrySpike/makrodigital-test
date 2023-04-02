@@ -51,11 +51,13 @@ class IndexController extends Controller
         return new JsonResponse(["error"=>"wrong credentials"], 401);
     }
 
-    public function error(Request $request){
-        /**
-         * @var \Exception $e
-         */
-        $e = $request->attributes->get('exception');
-        return new Response($e->getMessage());
+    public function error(\Exception $exception, $logger = null){
+        return $this->json(
+            [
+                "error_code" => $exception->getCode(),
+                "error_message" => $exception->getMessage(),
+                "error" => explode("\n", $exception->getTraceAsString())
+            ]
+        );
     }
 }

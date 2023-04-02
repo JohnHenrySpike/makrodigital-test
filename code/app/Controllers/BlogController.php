@@ -16,7 +16,16 @@ class BlogController extends Controller
         path: '/blog',
         tags: ['blog'],
         responses: [
-            new OA\Response(response: 200, description: 'OK')
+            new OA\Response(
+                response: 200, 
+                description: 'OK',
+                content: new OA\JsonContent(
+                    properties:[
+                        new OA\Property(property: 'items', type: 'array', items: new OA\Items(ref: "#/components/schemas/Post")),
+                        new OA\Property(property: 'pagination', type: 'object', ref: "#/components/schemas/Paginator")
+                    ]
+                )
+            )
         ]
     )]
 
@@ -27,11 +36,20 @@ class BlogController extends Controller
             new OA\Parameter('page', 'page', 'blog page', 'path', true)
         ],
         responses: [
-            new OA\Response(response: 200, description: 'OK')
+            new OA\Response(
+                response: 200, 
+                description: 'OK',
+                content: new OA\JsonContent(
+                    properties:[
+                        new OA\Property(property: 'items', type: 'array', items: new OA\Items(ref: "#/components/schemas/Post")),
+                        new OA\Property(property: 'pagination', type: 'object', ref: "#/components/schemas/Paginator")
+                    ]
+                )
+            )
         ]
     )]
-    public function index(int $page = 1){
-        $data = Post::query()->with(Comment::class, self::COMMENT_TO_LOAD)->paginate($page)->asArray();
+    public function index(Request $request, int $page = 1){
+        $data = Post::query()->with(Comment::class, '*', self::COMMENT_TO_LOAD, 'created_at', 'DESC')->paginate($page)->asArray();
         return $this->json($data);
     }
 
@@ -43,7 +61,11 @@ class BlogController extends Controller
             new OA\Parameter('id', 'id', 'blog post id', 'path', true)
         ],
         responses: [
-            new OA\Response(response: 200, description: 'OK')
+            new OA\Response(
+                response: 200, 
+                description: 'OK',
+                content: new OA\JsonContent(ref: "#/components/schemas/Post")
+                )
         ]
     )]
      public function show(int $id){
@@ -67,14 +89,22 @@ class BlogController extends Controller
             new OA\Response(
                 response: 200, 
                 description: 'OK',
-                content: new OA\JsonContent()
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'int', description: 'new post id'),
+                    ]
+                )
             )
         ]
     )]
     public function add(Request $request){
         $post = new Post($request->toArray());
-        $res = $post->insert();
-        return $this->json(["data"=>$res]);
+        if ($post->validate()){
+            return $this->json($post->insert());
+        }else{
+            return $this->json($post->getValidateErrors(), 400);
+        }
+        
     }   
     
     
@@ -87,9 +117,8 @@ class BlogController extends Controller
         ],
         requestBody: new OA\RequestBody(
             content: new OA\JsonContent(
-                required: ["title", "text"],
                 properties: [
-                    new OA\Property(property: 'title', type: 'string'),
+                    new OA\Property(property: 'author', type: 'string'),
                     new OA\Property(property: 'text', type: 'string')
                 ]
             )

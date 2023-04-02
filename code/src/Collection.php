@@ -19,7 +19,7 @@ class Collection implements Arrayable{
     }
 
     public function first(){
-        return count($this->items)>0 ? $this->items[0] : null;
+        return count($this->items)>0 ? $this->items[0] : new self;
     }
 
     public function asArray(){

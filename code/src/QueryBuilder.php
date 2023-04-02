@@ -16,7 +16,7 @@ class QueryBuilder {
 
     private $paginator = 'paginator';
 
-    private array|null $relations = null;
+    private array $relations = [];
 
     public function __construct(){
         $this->connection = Db::getConnection();
@@ -45,6 +45,11 @@ class QueryBuilder {
         $this->query        
         ->where( $condition[0]." ". $condition[1]. ' ?')
         ->setParameter(0, $condition[2]);
+        return $this;
+    }
+
+    public function sort(string $column, $order = null){
+        $this->query->orderBy($column, $order);
         return $this;
     }
 
@@ -77,39 +82,43 @@ class QueryBuilder {
      * @return Collection
      */
     private function loadRelations($models){
-        $nModels = [];
         /**
          * @var \Model $model
          * @var \Model $rmodel
          */
-        foreach ($models->all() as $model) {
-            foreach ($this->relations as $relation=>$count) {
+        foreach ($models = $models->all() as &$model) {
+            foreach ($this->relations as $relation=>$rparam) {
                 /**
                  * @var \Model $instance 
                  */
                 $instance = new $relation;
-                $related_models = $instance->newQuery()->collect(
-                    $instance->newQuery()->where($model->newQuery()->getWithCondition($instance))->limit($count)->query(),
-                    $instance
-                );
+                $related_models = $instance->newQuery()
+                    ->collect(
+                        $instance->newQuery()
+                            ->where($model->newQuery()->getWithCondition($instance))
+                            ->limit($rparam['limit'])
+                            ->sort($rparam['sort'], $rparam['order'])
+                            ->query($rparam['columns'])
+                    );
                 $model->addRelation(strtolower(Helpers::classBaseName($relation))."s", $instance->newCollection($related_models));
             }    
-            $nModels[]=$model;
         }
-        return $this->getModel()->newCollection($nModels);
+        return $this->getModel()->newCollection($models);
     }
 
     public function getModels(string $columns = '*'){
-        return $this->getModel()->newCollection($this->collect($this->query($columns), $this->getModel()));
+        return $this->getModel()->newCollection($this->collect($this->query($columns)));
     }
 
     private function query(string $columns = '*'){
         $this->query->select($columns)->from($this->model->getTable());
-        Helpers::log($this->query->getSQL());
         return $this->query->executeQuery()->fetchAllAssociative();
     }
 
-    private function collect(array $items, $model){
+    private function collect(array $items = []){
+        if (empty($items)){
+            return [];
+        }
         $models = [];
         foreach ($items as $item) {
             $models[] = $this->getModel()->newInstance($item);
@@ -175,8 +184,13 @@ class QueryBuilder {
      * @param class-string<\Model> $relation
      * @return self
      */
-    public function with($relation, int|null $limit = null){
-        $this->relations[$relation] = $limit;
+    public function with( $relation, string $columns = '*', ?int $limit = null, ?string $sort = null, string $order = null){
+        $this->relations[$relation] = [
+            'columns' => $columns,
+            'limit' => $limit,
+            'sort' => $sort,
+            'order' => $order
+        ];
         return $this;
     }
 

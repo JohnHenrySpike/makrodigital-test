@@ -14,6 +14,10 @@ abstract class Model implements Arrayable
 
     protected $relations = [];
 
+    protected $validateErrors = [];
+
+    protected $rules = [];
+
     private const CREATED_AT = 'created_at';
     private const UPDATED_AT = 'updated_at';
 
@@ -105,6 +109,15 @@ abstract class Model implements Arrayable
         return $ar_relations;
     }
 
+    public function validate(){
+        $v = new Valitron\Validator($this->attributes);
+        $v->rules($this->rules);
+        if (!$res = $v->validate()) {
+            $this->validateErrors = $v->errors();
+        }
+        return $res;
+    }
+
     private function setUpdateTime(){
         $time = new \DateTime();
         $time->setTimezone(new \DateTimeZone('Asia/Almaty'));
@@ -160,5 +173,28 @@ abstract class Model implements Arrayable
 
     public function setAttribute($key, $value){
 		$this->attributes[$key] = $value;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getValidateErrors() {
+		return $this->validateErrors;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getRules() {
+		return $this->rules;
+	}
+	
+	/**
+	 * @param array $rules 
+	 * @return self
+	 */
+	public function setRules($rules): self {
+		$this->rules = $rules;
+		return $this;
 	}
 }

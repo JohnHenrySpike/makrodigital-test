@@ -18,17 +18,14 @@ class Db{
     }
     
     public static function newQuery(): QueryBuilder{
-        $db = new self();
         return static::getConnection()->createQueryBuilder();
     }
 
     public static function manager(){
-        $db = new self();
         return static::getConnection()->createSchemaManager();
     }
 
     public static function platform(){
-        $db = new self();
         return static::getConnection()->getDatabasePlatform();
     }
     

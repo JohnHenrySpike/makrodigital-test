@@ -1,5 +1,17 @@
 <?
 use Contracts\Arrayable;
+use OpenApi\Attributes as OA;
+
+
+#[OA\Schema(
+    properties:[
+        new OA\Property(property: 'total', type: 'integer'),
+        new OA\Property(property: 'perPage', type: 'integer'),
+        new OA\Property(property: 'currentPage', type: 'integer'),
+        new OA\Property(property: 'pages', type: 'integer'),
+        new OA\Property(property: 'options', type: 'object')
+    ]
+)]
 
 class Paginator implements Arrayable{
 
