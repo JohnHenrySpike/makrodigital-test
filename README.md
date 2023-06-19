@@ -2,6 +2,9 @@ makrodigital-test
 =================
 
 RestAPI application with blog posts and comments
+- no framework
+- used symfony components (routing, http-kernel)
+- swagger api docs
 
 Requriments: 
  - Linux
